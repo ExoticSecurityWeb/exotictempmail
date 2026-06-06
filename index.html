@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>TempMail</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#08080f;--s1:#0f0f1a;--s2:#161625;--br:#1e1e32;
+  --g:#00ff87;--b:#00cfff;--w:#ffb347;--r:#ff4566;
+  --tx:#e8e8f0;--mu:#5a5a7a;
+  --fn:'Space Mono',monospace;--fd:'Syne',sans-serif}
+body{background:var(--bg);color:var(--tx);font-family:var(--fn);min-height:100vh}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:linear-gradient(rgba(0,255,135,.02) 1px,transparent 1px) 0 0/44px 44px,
+             linear-gradient(90deg,rgba(0,255,135,.02) 1px,transparent 1px) 0 0/44px 44px}
+.W{position:relative;z-index:1;max-width:960px;margin:0 auto;padding:32px 16px 80px}
+.G{display:grid;grid-template-columns:1fr 280px;gap:16px;align-items:start}
+@media(max-width:720px){.G{grid-template-columns:1fr}}
+h1{font-family:var(--fd);font-size:clamp(1.8rem,5vw,2.8rem);font-weight:800;text-align:center;
+  background:linear-gradient(135deg,var(--g),var(--b));-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px}
+.sub{text-align:center;color:var(--mu);font-size:.65rem;letter-spacing:.18em;text-transform:uppercase;margin-bottom:32px}
+.card{background:var(--s1);border:1px solid var(--br);border-radius:12px;padding:20px;margin-bottom:12px}
+.lbl{font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--mu);
+  margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.lbl::after{content:'';flex:1;height:1px;background:var(--br)}
+.abox{background:var(--bg);border:1px solid var(--br);border-radius:8px;padding:12px 14px;
+  color:var(--g);font-size:.85rem;word-break:break-all;line-height:1.5;margin-bottom:10px;
+  min-height:48px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.abox.load{color:var(--mu);font-style:italic}
+.atxt{flex:1;min-width:0;word-break:break-all}
+.gbadge{display:none;font-size:.58rem;padding:2px 8px;border-radius:99px;font-weight:700;white-space:nowrap;
+  background:rgba(255,179,71,.12);border:1px solid rgba(255,179,71,.3);color:var(--w)}
+.gbadge.on{display:inline-block}
+.trow{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.tlbl{font-size:.66rem;color:var(--mu)}
+.tlbl b{color:var(--g);font-size:.75rem}
+.tlbl.low b{color:var(--r)}
+.tlbl.gr b{color:var(--w)}
+.tbtns{display:flex;gap:4px;flex-wrap:wrap}
+.tex{padding:3px 9px;font-size:.58rem;border-radius:5px;border:1px solid var(--br);
+  background:transparent;color:var(--mu);cursor:pointer;font-family:var(--fn);font-weight:700;transition:all .15s}
+.tex:hover{border-color:var(--g);color:var(--g)}
+.tex.t24{border-color:rgba(255,179,71,.3);color:var(--w)}
+.tex.t24:hover{background:rgba(255,179,71,.08)}
+.tbar{height:4px;background:var(--br);border-radius:99px;overflow:hidden;margin-bottom:10px}
+.tbar div{height:100%;width:100%;background:linear-gradient(90deg,var(--g),var(--b));border-radius:99px;transition:width 1s linear}
+.tbar div.low{background:linear-gradient(90deg,var(--r),#ff8a00)}
+.tbar div.gr{background:linear-gradient(90deg,var(--w),#ff6b6b)}
+.brow{display:flex;gap:6px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;flex:1;
+  padding:9px 12px;border-radius:8px;border:none;cursor:pointer;
+  font-family:var(--fn);font-size:.68rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;transition:all .15s}
+.btn:disabled{opacity:.3;cursor:not-allowed;transform:none!important}
+.bcopy{background:transparent;border:1px solid var(--br);color:var(--tx)}
+.bcopy:hover{border-color:var(--g);color:var(--g)}
+.bnew{background:linear-gradient(135deg,var(--g),var(--b));color:#000}
+.bnew:hover{opacity:.85;transform:translateY(-1px)}
+.bref{background:transparent;border:1px solid var(--br);color:var(--tx)}
+.bref:hover{border-color:var(--b);color:var(--b)}
+.blnk{background:transparent;border:1px solid rgba(0,207,255,.3);color:var(--b)}
+.blnk:hover{background:rgba(0,207,255,.06);border-color:var(--b)}
+.sbox{background:var(--bg);border:1px solid rgba(0,207,255,.2);border-radius:8px;
+  padding:10px 13px;margin-top:8px;display:none}
+.sbox.on{display:block}
+.surl{font-size:.6rem;color:var(--b);word-break:break-all;line-height:1.5;margin-bottom:7px}
+.sacts{display:flex;gap:5px;flex-wrap:wrap}
+.bsm{padding:5px 10px;font-size:.6rem;border-radius:6px;border:1px solid var(--br);
+  background:transparent;color:var(--tx);cursor:pointer;font-family:var(--fn);font-weight:700;transition:all .15s}
+.bsm:hover{border-color:var(--b);color:var(--b)}
+.ibx{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.ibxt{font-family:var(--fd);font-size:.9rem;font-weight:700}
+.bdg{font-size:.6rem;padding:2px 8px;border-radius:99px;background:var(--br);color:var(--mu)}
+.bdg.new{background:rgba(0,255,135,.12);color:var(--g)}
+.bdg.gr{background:rgba(255,179,71,.12);color:var(--w)}
+.sep{flex:1;height:1px;background:var(--br)}
+.mlist{display:flex;flex-direction:column;gap:6px}
+.mi{background:var(--s1);border:1px solid var(--br);border-radius:9px;padding:13px 15px;
+  cursor:pointer;transition:border-color .2s,transform .15s,background .2s}
+.mi:hover{border-color:var(--b);transform:translateY(-2px);background:var(--s2)}
+.mi.u{border-left:3px solid var(--g)}
+.mfr{font-size:.65rem;color:var(--mu);margin-bottom:2px;display:flex;align-items:center;gap:4px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.md{width:5px;height:5px;border-radius:50%;background:var(--g);flex-shrink:0}
+.msub{font-size:.82rem;font-weight:700;color:var(--tx);margin-bottom:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mpre{font-size:.66rem;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mdt{font-size:.58rem;color:var(--mu);margin-top:6px;text-align:right}
+.det{display:none;background:var(--s1);border:1px solid var(--br);border-radius:12px;padding:22px;margin-bottom:12px}
+.det.on{display:block}
+.dbk{background:transparent;border:none;color:var(--b);font-family:var(--fn);font-size:.68rem;
+  cursor:pointer;padding:0;margin-bottom:14px;display:flex;align-items:center;gap:4px;letter-spacing:.08em;text-transform:uppercase}
+.dbk:hover{opacity:.7}
+.dsub{font-family:var(--fd);font-size:1.1rem;font-weight:700;margin-bottom:8px;line-height:1.3}
+.dmet{font-size:.64rem;color:var(--mu);margin-bottom:14px;line-height:2;
+  border-bottom:1px solid var(--br);padding-bottom:10px}
+.dmet strong{color:var(--tx)}
+.dbdy{font-size:.82rem;line-height:1.8;color:var(--tx);white-space:pre-wrap;word-break:break-word}
+.hcard{background:var(--s1);border:1px solid var(--br);border-radius:12px;padding:18px;position:sticky;top:14px}
+.hem{text-align:center;padding:16px 0;color:var(--mu);font-size:.68rem}
+.hlist{display:flex;flex-direction:column;gap:6px;max-height:72vh;overflow-y:auto}
+.hlist::-webkit-scrollbar{width:3px}
+.hlist::-webkit-scrollbar-thumb{background:var(--br);border-radius:99px}
+.hi{background:var(--bg);border:1px solid var(--br);border-radius:8px;padding:10px 12px;
+  cursor:pointer;transition:border-color .2s,background .2s;position:relative}
+.hi:hover{border-color:var(--g);background:var(--s2)}
+.hi.cur{border-color:var(--g);background:rgba(0,255,135,.04)}
+.hi.cur::after{content:"<";position:absolute;right:8px;top:50%;transform:translateY(-50%);color:var(--g);font-size:.5rem}
+.hia{font-size:.6rem;color:var(--g);word-break:break-all;margin-bottom:4px;padding-right:12px;line-height:1.4}
+.hi.hgr .hia{color:var(--w)}
+.hi.hex .hia{color:var(--mu);text-decoration:line-through}
+.hm{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:2px}
+.ht{font-size:.56rem;color:var(--mu)}
+.hs{font-size:.54rem;padding:2px 6px;border-radius:99px;font-weight:700}
+.hs.sa{background:rgba(0,255,135,.12);color:var(--g)}
+.hs.sg{background:rgba(255,179,71,.12);color:var(--w)}
+.hs.se{background:rgba(255,69,102,.08);color:var(--r)}
+.hx{display:flex;justify-content:space-between;margin-top:3px;font-size:.54rem;color:var(--mu)}
+.hec{color:var(--b)}
+.emp{text-align:center;padding:40px 16px;color:var(--mu)}
+.emp-i{font-size:1.8rem;margin-bottom:10px}
+.emp p{font-size:.74rem;line-height:1.7}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--g);color:#000;font-family:var(--fn);font-size:.68rem;font-weight:700;
+  letter-spacing:.08em;padding:8px 18px;border-radius:99px;opacity:0;
+  transition:all .3s;pointer-events:none;z-index:99;max-width:90vw;text-align:center}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.dsel{width:100%;padding:10px 14px;background:var(--bg);border:1px solid var(--br);
+  border-radius:8px;color:var(--g);font-family:var(--fn);font-size:.82rem;margin-bottom:10px;cursor:pointer;
+  -webkit-appearance:none;appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2300ff87'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center}
+.dsel:focus{outline:none;border-color:var(--g)}
+.spin{display:inline-block;width:10px;height:10px;border:2px solid currentColor;
+  border-top-color:transparent;border-radius:50%;animation:sp .6s linear infinite;vertical-align:middle}
+@keyframes sp{to{transform:rotate(360deg)}}
+@keyframes fu{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:480px){.brow{flex-direction:column}.btn{width:100%}}
+
+/* Info banner for standalone mode */
+.info-banner{background:rgba(0,207,255,.08);border:1px solid rgba(0,207,255,.2);border-radius:8px;
+  padding:10px 14px;margin-bottom:12px;font-size:.62rem;color:var(--b);line-height:1.7;text-align:center}
+.info-banner strong{color:var(--tx)}
+</style>
+</head>
+<body>
+<div class="W">
+  <h1>⚡ TempMail</h1>
+  <div class="sub">Adresse jetable · 10 min · Sans inscription</div>
+
+  <div class="info-banner">
+    <strong>Mode aperçu</strong> — Cette interface est fonctionnelle. Pour recevoir de vrais emails, déployez le Worker sur <strong>Cloudflare Workers</strong> avec votre propre backend catchmail.io.
+  </div>
+
+  <div class="G">
+    <div>
+      <div class="card">
+        <div class="lbl">Domaine</div>
+        <select class="dsel" id="domSel">
+          <option value="outils-intelligent-fr.abrdns.com">outils-intelligent-fr.abrdns.com</option>
+          <option value="exoticmail.zapto.org">exoticmail.zapto.org</option>
+        </select>
+        <div class="lbl">Adresse active</div>
+        <div class="abox load" id="AB">
+          <span class="atxt" id="AT">Cliquez sur Nouvelle...</span>
+          <span class="gbadge" id="GB">GRACE 3/3</span>
+        </div>
+        <div id="TW" style="display:none">
+          <div class="trow">
+            <div class="tlbl" id="TL">Expire dans <b id="TC">10:00</b></div>
+            <div class="tbtns">
+              <button class="tex" onclick="ext(10)">+10 min</button>
+              <button class="tex" onclick="ext(100)">+100 min</button>
+              <button class="tex t24" onclick="ext(1440)">24h ⚡</button>
+            </div>
+          </div>
+          <div class="tbar"><div id="TB"></div></div>
+        </div>
+        <div class="brow" style="margin-top:10px">
+          <button class="btn bcopy" id="BC" onclick="cpAddr()" disabled>📋 Copier</button>
+          <button class="btn bnew" id="BN" onclick="gen()">✦ Nouvelle</button>
+          <button class="btn bref" id="BR" onclick="doReload()" disabled><span id="RI">↻</span> Refresh</button>
+          <button class="btn blnk" id="BL" onclick="togShare()" disabled>🔗 Lien</button>
+        </div>
+        <div class="sbox" id="SB">
+          <div class="surl" id="SU"></div>
+          <div class="sacts">
+            <button class="bsm" onclick="cpLink()">📋 Copier lien</button>
+          </div>
+        </div>
+      </div>
+      <div class="det" id="DT"></div>
+      <div class="ibx">
+        <div class="ibxt">Boite</div>
+        <span class="bdg" id="BC2">0 email</span>
+        <div class="sep"></div>
+      </div>
+      <div id="ML" class="mlist"></div>
+      <div id="ES" class="emp">
+        <div class="emp-i">📭</div>
+        <p>Boite vide.<br/>Les emails arrivent ici.</p>
+      </div>
+    </div>
+    <div class="hcard">
+      <div class="lbl">Historique</div>
+      <div id="HL" class="hlist"><div class="hem">Aucune adresse</div></div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="TO"></div>
+
+<script>
+// ─── Config ───────────────────────────────────────────────────────────────────
+var EXP     = 600000;   // 10 min
+var MX24    = 86400000; // 24h
+var GM      = 3;        // grace mails
+var API_BASE = 'https://mailtemp.vosprojets.workers.dev';
+var DOMS    = ['outils-intelligent-fr.abrdns.com','exoticmail.zapto.org'];
+
+var ADJ  = ["rouge","bleu","vert","dark","neo","cool","neon","cyber","turbo","alpha","solar","nova","echo","flux","void","apex","wild","swift","pixel","ultra"];
+var NOUN = ["chat","loup","fox","ninja","ghost","storm","flash","blade","crow","wolf","hawk","tiger","cobra","viper","shark","panda","bear","lion","raven","drake"];
+
+// ─── State ────────────────────────────────────────────────────────────────────
+var addr = null, exp = null, tok = null, grace = false;
+var tI = null, rI = null;
+var H = [];
+try { H = JSON.parse(localStorage.getItem('tmv6') || '[]'); } catch(e) { H = []; }
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function sH() { try { localStorage.setItem('tmv6', JSON.stringify(H.slice(0,60))); } catch(e) {} }
+
+function randAddr(domain) {
+  return ADJ[Math.floor(Math.random()*ADJ.length)]
+    + "-" + NOUN[Math.floor(Math.random()*NOUN.length)]
+    + "-" + (Math.floor(Math.random()*9000)+1000)
+    + "@" + domain;
+}
+function randToken() {
+  var C = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", t = "";
+  for (var i=0;i<12;i++) t += C[Math.floor(Math.random()*C.length)];
+  return t;
+}
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function fmt(d) {
+  if (!d) return '';
+  return new Date(d).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+function fDur(ms) {
+  if (ms<=0) return '00:00';
+  var h=Math.floor(ms/3600000), m=Math.floor((ms%3600000)/60000), s=Math.floor((ms%60000)/1000);
+  return h>0 ? p(h)+':'+p(m)+':'+p(s) : p(m)+':'+p(s);
+}
+function p(n) { return String(n).padStart(2,'0'); }
+function fIdx() { return H.findIndex(function(x){return x.a===addr;}); }
+
+// ─── Generate address (local, no network) ────────────────────────────────────
+function gen() {
+  var b = document.getElementById('BN');
+  b.disabled = true;
+  b.innerHTML = '<span class="spin"></span>';
+  clearInterval(tI); clearInterval(rI);
+  rst();
+
+  var selDom = document.getElementById('domSel');
+  var domain = (selDom && DOMS.indexOf(selDom.value) > -1) ? selDom.value : DOMS[0];
+
+  // Generate locally — no fetch needed
+  addr = randAddr(domain);
+  tok  = randToken();
+  exp  = Date.now() + EXP;
+  grace = false;
+
+  H.unshift({a:addr, tk:tok, c:Date.now(), e:exp, mc:0, gc:0, st:'active'});
+  sH(); rH();
+  setA(addr);
+
+  document.getElementById('TW').style.display = 'block';
+  document.getElementById('BC').disabled = false;
+  document.getElementById('BR').disabled = false;
+  document.getElementById('BL').disabled = false;
+  upShare(); startT();
+
+  // Try to poll real API; silently ignore errors
+  rI = setInterval(doReload, 15000);
+  doReload();
+
+  b.disabled = false;
+  b.innerHTML = '✦ Nouvelle';
+  toast('Adresse créée !');
+}
+
+// ─── Reset UI ─────────────────────────────────────────────────────────────────
+function rst() {
+  document.getElementById('AT').textContent = 'Génération...';
+  document.getElementById('AB').className = 'abox load';
+  document.getElementById('BC').disabled = true;
+  document.getElementById('BR').disabled = true;
+  document.getElementById('BL').disabled = true;
+  document.getElementById('TW').style.display = 'none';
+  document.getElementById('ML').innerHTML = '';
+  document.getElementById('DT').className = 'det';
+  document.getElementById('ES').style.display = 'block';
+  document.getElementById('BC2').textContent = '0 email';
+  document.getElementById('BC2').className = 'bdg';
+  document.getElementById('GB').className = 'gbadge';
+  document.getElementById('SB').className = 'sbox';
+  document.getElementById('TB').className = '';
+  document.getElementById('TL').className = 'tlbl';
+}
+
+function setA(a) {
+  document.getElementById('AT').textContent = a;
+  document.getElementById('AB').className = 'abox';
+}
+
+// ─── Timer ────────────────────────────────────────────────────────────────────
+function startT() { upT(); tI = setInterval(upT, 1000); }
+
+function upT() {
+  var tb = document.getElementById('TB'), tl = document.getElementById('TL');
+  if (grace) {
+    var idx = fIdx();
+    var left = GM - (idx>=0 ? H[idx].gc : 0);
+    document.getElementById('TC').textContent = 'GRACE '+left+'/'+GM;
+    tb.style.width = (left/GM*100)+'%';
+    tb.className = 'gr'; tl.className = 'tlbl gr';
+    return;
+  }
+  var r = exp - Date.now();
+  if (r <= 0) { doGrace(); return; }
+  document.getElementById('TC').textContent = fDur(r);
+  tb.style.width = Math.max(0,(r/EXP)*100)+'%';
+  var low = r < 120000;
+  tb.className = low ? 'low' : '';
+  tl.className = 'tlbl' + (low ? ' low' : '');
+}
+
+function doGrace() {
+  grace = true; clearInterval(rI);
+  var idx = fIdx();
+  if (idx>=0) { H[idx].st='grace'; sH(); rH(); }
+  document.getElementById('GB').className = 'gbadge on';
+  upGB();
+  document.getElementById('TB').className = 'gr';
+  document.getElementById('TL').className = 'tlbl gr';
+  toast('Expirée — grace period ('+GM+' emails restants)');
+}
+
+function upGB() {
+  var idx = fIdx(), used = idx>=0 ? H[idx].gc : 0;
+  document.getElementById('GB').textContent = 'GRACE '+(GM-used)+'/'+GM;
+}
+
+function ext(min) {
+  var ms = min * 60000;
+  if (grace) {
+    grace = false;
+    document.getElementById('GB').className = 'gbadge';
+    document.getElementById('TB').className = '';
+    document.getElementById('TL').className = 'tlbl';
+    exp = Date.now() + ms;
+    rI = setInterval(doReload, 15000);
+  } else {
+    exp = Math.min(exp + ms, Date.now() + MX24);
+  }
+  var idx = fIdx();
+  if (idx>=0) { H[idx].e=exp; H[idx].st='active'; sH(); rH(); }
+  toast('Étendu '+(min>=1440?'24h':'+'+min+' min'));
+  upT();
+}
+
+// ─── Fetch mails (real API, fails gracefully) ─────────────────────────────────
+function doReload() {
+  if (!addr) return;
+  var ri = document.getElementById('RI');
+  ri.style.animation = 'sp .6s linear infinite';
+  fetch(API_BASE+'/api/mails?a='+encodeURIComponent(addr))
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      var msgs = d.messages || [];
+      rMails(msgs);
+      var idx = fIdx();
+      if (idx>=0) {
+        if (grace || H[idx].st==='grace') {
+          var prev = H[idx].mc || 0;
+          if (msgs.length > prev) {
+            H[idx].gc = (H[idx].gc||0) + (msgs.length - prev);
+            upGB();
+            if (H[idx].gc >= GM) killAddr(idx);
+          }
+        }
+        H[idx].mc = msgs.length; sH(); rH();
+      }
+    })
+    .catch(function(){
+      // API unreachable in this context — silently ignore
+    })
+    .finally(function(){ ri.style.animation=''; });
+}
+
+function killAddr(idx) {
+  clearInterval(tI); clearInterval(rI);
+  H[idx].st = 'expired'; sH(); rH();
+  document.getElementById('TC').textContent = 'EXPIRÉE';
+  document.getElementById('TB').style.width = '0%';
+  document.getElementById('GB').textContent = 'EXPIRÉE';
+  document.getElementById('GB').style.color = 'var(--r)';
+  toast('Adresse expirée définitivement', true);
+}
+
+// ─── Render mails ─────────────────────────────────────────────────────────────
+function rMails(msgs) {
+  var ml = document.getElementById('ML');
+  var es = document.getElementById('ES');
+  var bc = document.getElementById('BC2');
+  var idx = fIdx(), isG = grace || (idx>=0 && H[idx] && H[idx].st==='grace');
+  bc.textContent = msgs.length + (msgs.length>1?' emails':' email');
+  bc.className = 'bdg' + (msgs.length>0 ? (isG?' gr':' new') : '');
+  if (msgs.length===0) { ml.innerHTML=''; es.style.display='block'; return; }
+  es.style.display = 'none';
+  var h = '';
+  for (var i=0; i<msgs.length; i++) {
+    var m = msgs[i];
+    h += '<div class="mi u" onclick="openM(\''+esc(m.id)+'\')" style="animation:fu .3s ease both '+(i*.05)+'s">'
+       + '<div class="mfr"><div class="md"></div>'+esc(m.from||'Inconnu')+'</div>'
+       + '<div class="msub">'+esc(m.subject||'(Sans objet)')+'</div>'
+       + '<div class="mpre">'+esc((m.intro||'').substring(0,90))+'</div>'
+       + '<div class="mdt">'+fmt(m.createdAt)+'</div></div>';
+  }
+  ml.innerHTML = h;
+}
+
+function openM(id) {
+  document.getElementById('ML').style.display = 'none';
+  document.getElementById('ES').style.display = 'none';
+  var dt = document.getElementById('DT');
+  dt.innerHTML = '<p style="color:var(--mu);text-align:center;padding:32px">Chargement...</p>';
+  dt.className = 'det on';
+  fetch(API_BASE+'/api/mail?id='+id+'&a='+encodeURIComponent(addr))
+    .then(function(r){ return r.json(); })
+    .then(function(m){
+      var htmlB = (m.body&&m.body.html) ? m.body.html : m.html;
+      var txt   = (m.body&&m.body.text) ? m.body.text : m.text;
+      var body  = htmlB
+        ? '<iframe srcdoc="'+esc(htmlB)+'" sandbox="allow-same-origin" style="width:100%;border:none;min-height:280px;background:#fff;border-radius:6px"></iframe>'
+        : '<div class="dbdy">'+esc(txt||'(Corps vide)')+'</div>';
+      dt.innerHTML = '<button class="dbk" onclick="closeM()">← Retour</button>'
+        +'<div class="dsub">'+esc(m.subject||'(Sans objet)')+'</div>'
+        +'<div class="dmet"><strong>De :</strong> '+esc(m.from||'')+'<br/>'
+        +'<strong>À :</strong> '+esc(addr)+'<br/>'
+        +'<strong>Date :</strong> '+fmt(m.date||m.createdAt)+'</div>'+body;
+    })
+    .catch(function(){
+      dt.innerHTML = '<p style="color:var(--r);text-align:center;padding:32px">Erreur chargement</p>';
+    });
+}
+
+function closeM() {
+  document.getElementById('DT').className = 'det';
+  document.getElementById('ML').style.display = 'flex';
+  if (!document.getElementById('ML').innerHTML) document.getElementById('ES').style.display = 'block';
+}
+
+// ─── Share link ───────────────────────────────────────────────────────────────
+function getLink() { return addr && tok ? API_BASE+'/'+encodeURIComponent(addr)+'_'+tok : ''; }
+function togShare() { var s=document.getElementById('SB'); s.classList.toggle('on'); if(s.classList.contains('on')) upShare(); }
+function upShare() { document.getElementById('SU').textContent = getLink() || '(générez une adresse d\'abord)'; }
+function cpLink() { navigator.clipboard.writeText(getLink()).then(function(){ toast('Lien copié !'); }); }
+
+// ─── History ──────────────────────────────────────────────────────────────────
+function rH() {
+  var c = document.getElementById('HL');
+  if (H.length===0) { c.innerHTML='<div class="hem">Aucune adresse</div>'; return; }
+  var h = '';
+  for (var i=0; i<H.length; i++) {
+    var x=H[i], isCur=x.a===addr, st=x.st||'active';
+    var sl = st==='expired'?'Expirée':st==='grace'?'Grace':'Active';
+    var ec = x.mc>0 ? x.mc+' email'+(x.mc>1?'s':'') : '';
+    var gc = st==='grace' ? 'GRACE '+(GM-(x.gc||0))+'/'+GM : '';
+    h += '<div class="hi'+(isCur?' cur':'')+(st==='grace'?' hgr':'')+(st==='expired'?' hex':'')+'" '
+       + 'onclick="swAddr(\''+esc(x.a)+'\','+x.e+',\''+esc(x.tk||'')+'\',\''+st+'\')">'
+       + '<div class="hia">'+esc(x.a)+'</div>'
+       + '<div class="hm"><span class="ht">'+fmt(x.c)+'</span><span class="hs s'+st[0]+'">'+sl+'</span></div>'
+       + '<div class="hx"><span>'+(x.e?'exp '+fmt(x.e):'')+'</span><span class="hec">'+(gc||ec)+'</span></div>'
+       + '</div>';
+  }
+  c.innerHTML = h;
+}
+
+function swAddr(a, ex, tk, st) {
+  if (a===addr) return;
+  clearInterval(tI); clearInterval(rI);
+  addr=a; exp=ex; tok=tk; grace=st==='grace';
+  setA(a);
+  document.getElementById('BC').disabled=false;
+  document.getElementById('BR').disabled=false;
+  document.getElementById('BL').disabled=false;
+  document.getElementById('ML').innerHTML='';
+  document.getElementById('DT').className='det';
+  document.getElementById('ES').style.display='block';
+  document.getElementById('BC2').textContent='0 email';
+  document.getElementById('BC2').className='bdg';
+  document.getElementById('TW').style.display='block';
+  document.getElementById('TB').className='';
+  document.getElementById('TL').className='tlbl';
+  document.getElementById('SB').className='sbox';
+  upShare();
+  if (st==='expired') {
+    document.getElementById('TC').textContent='EXPIRÉE';
+    document.getElementById('TB').style.width='0%';
+    document.getElementById('GB').className='gbadge';
+  } else if (grace) {
+    document.getElementById('GB').className='gbadge on';
+    upGB();
+    document.getElementById('TB').className='gr';
+    document.getElementById('TL').className='tlbl gr';
+    startT();
+  } else {
+    document.getElementById('GB').className='gbadge';
+    startT(); rI=setInterval(doReload,15000);
+  }
+  rH(); doReload(); toast('Boite chargée');
+}
+
+function cpAddr() {
+  if (!addr) return;
+  navigator.clipboard.writeText(addr).then(function(){ toast('Adresse copiée !'); });
+}
+
+function toast(msg, err) {
+  var t = document.getElementById('TO');
+  t.textContent = msg;
+  t.style.background = err ? 'var(--r)' : 'var(--g)';
+  t.style.color = err ? '#fff' : '#000';
+  t.className = 'toast on';
+  setTimeout(function(){ t.className='toast'; }, 2800);
+}
+
+// ─── Init — NE PAS appeler gen() automatiquement ─────────────────────────────
+function init() {
+  rH();
+  // Show idle state — user clicks "Nouvelle" to start
+  document.getElementById('AT').textContent = 'Cliquez sur ✦ Nouvelle';
+  document.getElementById('AB').className = 'abox load';
+}
+
+init();
+</script>
+</body>
+</html>
